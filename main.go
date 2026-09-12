@@ -19,11 +19,11 @@ func main() {
 }
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Hello! Welcome to my Go HTTP server.")
+	fmt.Fprintln(w, "Welcome to Go server.")
 }
 
 func aboutHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "This is a simple HTTP server written in Go.")
+	fmt.Fprintln(w, "This is a simple HTTP server")
 }
 
 func pingHandler(w http.ResponseWriter, r *http.Request) {
