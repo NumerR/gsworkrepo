@@ -2,13 +2,25 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
+
+	"github.com/NumerR/gdwork/internal/handlers"
 )
 
 func main() {
-	http.HandleFunc("/", homeHandler)
+	templates := template.Must(
+		template.ParseGlob("templates/**/*.html"),
+	)
+
+	mux := http.NewServeMux()
+
+	//Pages
+	mux.HandleFunc("/", handlers.Home(templates))
 	http.HandleFunc("/about", aboutHandler)
 	http.HandleFunc("/ping", pingHandler)
+	mux.HandleFunc("/login", handlers.Login())
+	mux.HandleFunc("/register", handlers.Register())
 
 	fmt.Println("Server started on http://localhost:8080")
 
