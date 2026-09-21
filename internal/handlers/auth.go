@@ -9,7 +9,7 @@ func Login(templates *template.Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		err := templates.ExecuteTemplate(w, "base", map[string]any{
-			"Title": "Вход — SOS",
+			"Title": "Вход",
 		})
 
 		if err != nil {
@@ -25,7 +25,7 @@ func Register(templates *template.Template) http.HandlerFunc {
 		if r.Method == http.MethodGet {
 
 			err := templates.ExecuteTemplate(w, "base", map[string]any{
-				"Title": "Регистрация — SOS",
+				"Title": "Регистрация",
 			})
 
 			if err != nil {

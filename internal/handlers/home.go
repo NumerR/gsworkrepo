@@ -15,7 +15,7 @@ func Home(templates *template.Template) http.HandlerFunc {
 		}
 
 		err := templates.ExecuteTemplate(w, "base", map[string]any{
-			"Title": "SOS — Your university, simplified.",
+			"Title": "Test",
 		})
 
 		if err != nil {
