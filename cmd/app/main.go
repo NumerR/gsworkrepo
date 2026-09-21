@@ -1,48 +1,46 @@
 package main
 
 import (
-	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 
-	"github.com/NumerR/gdwork/internal/handlers"
+	"gdwork/internal/handlers"
 )
 
 func main() {
+
 	templates := template.Must(
-		template.ParseGlob("templates/**/*.html"),
+		template.ParseGlob("web/template/**/*.html"),
 	)
 
 	mux := http.NewServeMux()
 
-	//Pages
+	// Pages
 	mux.HandleFunc("/", handlers.Home(templates))
-	http.HandleFunc("/about", aboutHandler)
-	http.HandleFunc("/ping", pingHandler)
-	mux.HandleFunc("/login", handlers.Login())
-	mux.HandleFunc("/register", handlers.Register())
+	mux.HandleFunc("/about", handlers.About)
+	mux.HandleFunc("/ping", handlers.Ping)
+	mux.HandleFunc("/login", handlers.Login(templates))
+	mux.HandleFunc("/register", handlers.Register(templates))
 
-	fmt.Println("Server started on http://localhost:8080")
+	// Static files
 
-	err := http.ListenAndServe(":8080", nil)
+	fileServer := http.FileServer(http.Dir("./web/static"))
+
+	mux.Handle(
+		"/static/",
+		http.StripPrefix("/static/", fileServer),
+	)
+
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: mux,
+	}
+
+	log.Println("Server started on http://localhost:8080")
+
+	err := server.ListenAndServe()
 	if err != nil {
-		fmt.Println("Server error:", err)
+		log.Fatal(err)
 	}
-}
-
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Welcome to Go server.")
-}
-
-func aboutHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "This is a simple HTTP server")
-}
-
-func pingHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	fmt.Fprintln(w, "pong")
 }
