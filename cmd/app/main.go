@@ -10,18 +10,32 @@ import (
 
 func main() {
 
-	templates := template.Must(
-		template.ParseGlob("web/template/**/*.html"),
-	)
-
+	homeTemplate := template.Must(
+		template.ParseFiles(
+			"web/template/layout/base.html",
+			"web/template/components/header.html",
+			"web/template/pages/home.html",
+		))
+	registerTemplate := template.Must(
+		template.ParseFiles(
+			"web/template/layout/base.html",
+			"web/template/components/header.html",
+			"web/template/pages/register.html",
+		))
+	loginTemplate := template.Must(
+		template.ParseFiles(
+			"web/template/layout/base.html",
+			"web/template/components/header.html",
+			"web/template/pages/login.html",
+		))
 	mux := http.NewServeMux()
 
 	// Pages
-	mux.HandleFunc("/", handlers.Home(templates))
+	mux.HandleFunc("/", handlers.Home(homeTemplate))
 	mux.HandleFunc("/about", handlers.About)
 	mux.HandleFunc("/ping", handlers.Ping)
-	mux.HandleFunc("/login", handlers.Login(templates))
-	mux.HandleFunc("/register", handlers.Register(templates))
+	mux.HandleFunc("/login", handlers.Login(loginTemplate))
+	mux.HandleFunc("/register", handlers.Register(registerTemplate))
 
 	// Static files
 
