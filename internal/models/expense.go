@@ -1,8 +1,8 @@
 package models
 
 type Expense struct {
-	Title       string
-	Amount      int
+	Success     bool
 	Description string
+	Amount      int
 	Date        string
 }

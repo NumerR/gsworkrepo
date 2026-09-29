@@ -1,19 +1,31 @@
-{{define "content"}}
+    {{define "content"}}
 
-<section class="hero">
+    <section class="hero">
 
-    <div class="hero-content">
-        <h2>
-            Учет трат
-        </h2>
+        <div class="hero-content">
+            <h2>
+                Учет трат
+            </h2>
 
-        <form action="">
-            
-        </form>
+            <form method="POST" action="">
+                <label>На что?:
+                    <input type="text" name="Description" value="{{.Description}}">
+                </label>
+                <br>
+                <label>Сколько?:
+                    <input type="number" name="Amount" value="{{.Amount}}">
+                </label>
+                <br>
+                <label>Когда?:
+                    <input type="date" name="Date" value="{{.Date}}">
+                </label>
+                <br>
+                <button type="submit">Добавить в учет</button>
+            </form>
 
 
-    </div>
+        </div>
 
-</section>
+    </section>
 
-{{end}}
+    {{end}}
