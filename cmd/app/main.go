@@ -28,14 +28,23 @@ func main() {
 			"web/template/components/header.html",
 			"web/template/pages/login.html",
 		))
+	expensesTemplate := template.Must(
+		template.ParseFiles(
+			"web/template/layout/base.html",
+			"web/template/components/header.html",
+			"web/template/pages/login.html",
+		))
+
 	mux := http.NewServeMux()
 
-	// Pages
+	// Страницы
 	mux.HandleFunc("/", handlers.Home(homeTemplate))
 	mux.HandleFunc("/about", handlers.About)
 	mux.HandleFunc("/ping", handlers.Ping)
 	mux.HandleFunc("/login", handlers.Login(loginTemplate))
 	mux.HandleFunc("/register", handlers.Register(registerTemplate))
+	mux.HandleFunc("/expenses", handlers.ExpensesList(expensesTemplate, &expenses))
+	mux.HandleFunc("POST /expenses", handlers.AddExpense(&expenses))
 
 	// Static files
 
