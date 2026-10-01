@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"gdwork/internal/handlers"
+	"gdwork/internal/models"
 )
 
 func main() {
@@ -32,10 +33,12 @@ func main() {
 		template.ParseFiles(
 			"web/template/layout/base.html",
 			"web/template/components/header.html",
-			"web/template/pages/login.html",
+			"web/template/pages/expense.html",
 		))
 
 	mux := http.NewServeMux()
+
+	expenses := []models.Expense{}
 
 	// Страницы
 	mux.HandleFunc("/", handlers.Home(homeTemplate))
@@ -43,7 +46,7 @@ func main() {
 	mux.HandleFunc("/ping", handlers.Ping)
 	mux.HandleFunc("/login", handlers.Login(loginTemplate))
 	mux.HandleFunc("/register", handlers.Register(registerTemplate))
-	mux.HandleFunc("/expenses", handlers.ExpensesList(expensesTemplate, &expenses))
+	mux.HandleFunc("/expenses", handlers.ExpenseList(expensesTemplate, &expenses))
 	mux.HandleFunc("POST /expenses", handlers.AddExpense(&expenses))
 
 	// Static files

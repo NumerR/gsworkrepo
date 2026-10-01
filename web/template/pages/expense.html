@@ -1,0 +1,40 @@
+{{define "content"}}
+    <div>Список трат</div>
+
+    <table>
+        <thead>
+            <tr>
+                <th></th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Expenses}}
+            <tr>
+                <td>{{.Description}}</td>
+                <td>{{.Amount}}</td>
+                <td>{{.Date}}</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+
+    <div>=====================================</div>
+
+    <form method="POST" action="/expenses">
+        <label>Описание:
+            <input type="text" name="Description">
+        </label>
+        <br>
+        <label>Сумма:
+            <input type="number" name="Amount">
+        </label>
+        <br>
+        <label>Дата:
+            <input type="date" name="Date">
+        </label>
+        <br>
+        <button type="submit">Добавить</button>
+    </form>
+{{end}}

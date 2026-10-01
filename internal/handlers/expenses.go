@@ -13,8 +13,8 @@ func AddExpense(expenses *[]models.Expense) http.HandlerFunc {
 		r.ParseForm()
 
 		description := r.FormValue("Description")
-		amount := r.FormValue("Amount")
-		date := r.FormValue("Date")
+		amountStr := r.FormValue("Amount")
+		dateStr := r.FormValue("Date")
 
 		amount, err := strconv.Atoi(amountStr)
 		if err != nil {
@@ -22,13 +22,11 @@ func AddExpense(expenses *[]models.Expense) http.HandlerFunc {
 			return
 		}
 
-		models.Expense{
+		*expenses = append(*expenses, models.Expense{
 			Description: description,
 			Amount:      amount,
 			Date:        dateStr,
-		}
-
-		*expenses = append(*expenses, models.Expense{})
+		})
 		http.Redirect(w, r, "/expenses", http.StatusSeeOther)
 	}
 }
