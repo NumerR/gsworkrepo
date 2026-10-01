@@ -11,11 +11,11 @@
 
 ## Структура проекта
 
-*cmd/app* — **точка входа (main.go)**
-*internal/handlers* — **HTTP-обработчики**
-*internal/models* — **структуры данных**
-*web/template* — **HTML-шаблоны (layout, components, pages)**
-*web/static* — **CSS, JS**
+- *cmd/app* — **точка входа (main.go)**
+- *internal/handlers* — **HTTP-обработчики**
+- *internal/models* — **структуры данных**
+- *web/template* — **HTML-шаблоны (layout, components, pages)**
+- *web/static* — **CSS, JS**
 
 ## Запуск
 
