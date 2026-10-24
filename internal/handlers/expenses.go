@@ -42,7 +42,7 @@ func AddExpense(repo *repository.ExpenseRepository) http.HandlerFunc {
 			return
 		}
 
-		http.Redirect(w, r, "/expenses", http.StatusSeeOther)
+		http.Redirect(w, r, "/expenses?flash=add&id="+strconv.FormatInt(expense.ID, 10), http.StatusSeeOther)
 	}
 }
 
@@ -92,7 +92,7 @@ func UpdateExpense(repo *repository.ExpenseRepository) http.HandlerFunc {
 			return
 		}
 
-		http.Redirect(w, r, "/expenses", http.StatusSeeOther)
+		http.Redirect(w, r, "/expenses?flash=edit&id="+strconv.FormatInt(id, 10), http.StatusSeeOther)
 	}
 }
 

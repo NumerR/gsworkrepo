@@ -52,9 +52,10 @@ func main() {
 
 	fileServer := http.FileServer(http.Dir("./web/static"))
 
+	// no-cache заставляет браузер проверять свежесть CSS/JS при каждой загрузке
 	mux.Handle(
 		"/static/",
-		http.StripPrefix("/static/", fileServer),
+		http.StripPrefix("/static/", noCache(fileServer)),
 	)
 
 	server := &http.Server{
@@ -79,4 +80,11 @@ func page(name string) *template.Template {
 			"web/template/components/expense_form.html",
 			"web/template/pages/"+name+".html",
 		))
+}
+
+func noCache(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
+		next.ServeHTTP(w, r)
+	})
 }

@@ -17,7 +17,7 @@
             </thead>
             <tbody>
                 {{range .Expenses}}
-                <tr>
+                <tr data-id="{{.ID}}">
                     <td class="cell-date">{{.DateText}}</td>
                     <td class="cell-description">{{.Description}}</td>
                     <td class="num cell-amount">{{.AmountText}}</td>

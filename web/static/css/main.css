@@ -30,6 +30,43 @@
     --shape-full: 999px;
 
     --ease: cubic-bezier(.2, 0, 0, 1);
+
+    --state-layer: rgb(29 27 32 / .08);
+    --state-layer-soft: rgb(29 27 32 / .04);
+    --primary-soft: rgb(103 80 164 / .08);
+    --error-soft: rgb(179 38 30 / .08);
+
+    color-scheme: light;
+}
+
+/* Material Design 3 — тёмная схема */
+[data-theme="dark"] {
+    --primary: #d0bcff;
+    --on-primary: #381e72;
+    --primary-container: #4f378b;
+    --on-primary-container: #eaddff;
+    --secondary-container: #4a4458;
+    --on-secondary-container: #e8def8;
+    --error: #f2b8b5;
+    --on-error: #601410;
+    --error-container: #8c1d18;
+
+    --surface: #141218;
+    --surface-container-lowest: #0f0d13;
+    --surface-container-low: #1d1b20;
+    --surface-container: #211f26;
+    --surface-container-high: #2b2930;
+    --on-surface: #e6e0e9;
+    --on-surface-variant: #cac4d0;
+    --outline: #938f99;
+    --outline-variant: #49454f;
+
+    --state-layer: rgb(230 224 233 / .08);
+    --state-layer-soft: rgb(230 224 233 / .04);
+    --primary-soft: rgb(208 188 255 / .12);
+    --error-soft: rgb(242 184 181 / .12);
+
+    color-scheme: dark;
 }
 
 *,
@@ -77,6 +114,19 @@ a {
     user-select: none;
     font-feature-settings: "liga";
     -webkit-font-smoothing: antialiased;
+    transition: transform .25s var(--ease);
+}
+
+.btn:hover .icon {
+    transform: scale(1.12);
+}
+
+.btn:hover .icon-end {
+    transform: translateX(4px);
+}
+
+.nav-link:hover .icon {
+    transform: scale(1.1);
 }
 
 .visually-hidden {
@@ -134,17 +184,22 @@ a {
     gap: .5rem;
     height: 40px;
     padding: 0 1rem;
+    overflow: hidden;
     border-radius: var(--shape-full);
     color: var(--on-surface-variant);
     font-size: .875rem;
     font-weight: 500;
     letter-spacing: .1px;
     text-decoration: none;
-    transition: background-color .2s var(--ease);
+    transition: background-color .2s var(--ease), transform .15s var(--ease);
 }
 
 .nav-link:hover {
-    background: rgb(29 27 32 / .08);
+    background: var(--state-layer);
+}
+
+.nav-link:active {
+    transform: scale(.95);
 }
 
 .nav-link[aria-current="page"] {
@@ -220,7 +275,7 @@ a {
     letter-spacing: .1px;
     text-decoration: none;
     cursor: pointer;
-    transition: box-shadow .2s var(--ease);
+    transition: box-shadow .2s var(--ease), transform .15s var(--ease);
 }
 
 .btn::before {
@@ -249,19 +304,31 @@ a {
     margin: 0 -.5rem 0 0;
 }
 
+.btn-filled,
+.btn-tonal,
+.btn-danger {
+    will-change: transform;
+}
+
 .btn-filled {
     color: var(--on-primary);
     background: var(--primary);
 }
 
-.btn-filled:hover,
-.btn-danger:hover {
-    box-shadow: var(--elevation-1);
-}
-
 .btn-tonal {
     color: var(--on-secondary-container);
     background: var(--secondary-container);
+}
+
+.btn-filled:hover,
+.btn-tonal:hover,
+.btn-danger:hover {
+    box-shadow: var(--elevation-1);
+    transform: translateY(-1px);
+}
+
+.btn:active {
+    transform: translateY(0) scale(.96);
 }
 
 .btn-text {
@@ -276,14 +343,20 @@ a {
 }
 
 .icon-btn {
+    position: relative;
     display: inline-grid;
     place-items: center;
     width: 40px;
     height: 40px;
+    overflow: hidden;
     border-radius: var(--shape-full);
     color: var(--on-surface-variant);
     text-decoration: none;
-    transition: background-color .2s var(--ease), color .2s var(--ease);
+    transition: background-color .2s var(--ease), color .2s var(--ease), transform .15s var(--ease);
+}
+
+.icon-btn:active {
+    transform: scale(.88);
 }
 
 .icon-btn .icon {
@@ -292,12 +365,50 @@ a {
 
 .icon-btn:hover {
     color: var(--primary);
-    background: rgb(103 80 164 / .08);
+    background: var(--primary-soft);
+}
+
+.icon-btn:hover .icon {
+    transform: scale(1.15) rotate(8deg);
 }
 
 .icon-btn-danger:hover {
     color: var(--error);
-    background: rgb(179 38 30 / .08);
+    background: var(--error-soft);
+}
+
+.icon-btn-danger:hover .icon {
+    transform: scale(1.15) rotate(-12deg);
+}
+
+/* Ripple — фирменная волна Material при нажатии */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: .25;
+    transform: scale(0);
+    animation: ripple .55s var(--ease) forwards;
+    pointer-events: none;
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(2.6);
+        opacity: 0;
+    }
+}
+
+/* Смена иконки темы — вращение с проявлением */
+.icon-swap {
+    animation: icon-swap .35s var(--ease);
+}
+
+@keyframes icon-swap {
+    from {
+        transform: rotate(-120deg) scale(.4);
+        opacity: 0;
+    }
 }
 
 /* Outlined text fields */
@@ -451,7 +562,7 @@ a {
 }
 
 .table tbody tr:hover {
-    background: rgb(29 27 32 / .04);
+    background: var(--state-layer-soft);
 }
 
 .table .num {
@@ -567,6 +678,211 @@ a {
     margin-top: .5rem;
 }
 
+/* ============================================================
+   Motion: добавление / изменение / удаление трат
+   (вдохновлено референсами: burst-конфетти, hold-to-delete, раскрытие карточки)
+   ============================================================ */
+
+/* --- Кнопка отправки формы: растворение текста, конфетти, галочка --- */
+.burst-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.burst-particle {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    will-change: transform, opacity;
+}
+
+@keyframes check-pop {
+    0% {
+        transform: scale(0) rotate(-40deg);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.3) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.btn.is-success .icon {
+    color: #69f0ae;
+    animation: check-pop .45s cubic-bezier(.34, 1.56, .64, 1) both;
+}
+
+/* --- Строки списка: влёт при добавлении, подсветка при правке, вылет при удалении --- */
+@keyframes row-enter {
+    from {
+        opacity: 0;
+        transform: translateX(-16px);
+    }
+}
+
+@keyframes row-tint-add {
+    0%, 45% { background: var(--primary-container); }
+    100%    { background: transparent; }
+}
+
+@keyframes row-tint-edit {
+    0%, 45% { background: var(--secondary-container); }
+    100%    { background: transparent; }
+}
+
+@keyframes row-exit {
+    to {
+        opacity: 0;
+        transform: translateX(28px) scale(.97);
+    }
+}
+
+tr.row-enter {
+    animation: row-enter .5s var(--ease);
+}
+
+tr.row-enter td {
+    animation: row-tint-add 1.8s var(--ease);
+}
+
+tr.row-update td {
+    animation: row-tint-edit 1.8s var(--ease);
+}
+
+tr.row-exit {
+    animation: row-exit .32s var(--ease) forwards;
+    pointer-events: none;
+}
+
+/* --- Hold to Delete: заливка пилюли при удержании --- */
+@property --hold {
+    syntax: "<number>";
+    inherits: true;
+    initial-value: 0;
+}
+
+.hold-btn.hold-armed {
+    overflow: hidden;
+    color: var(--on-surface);
+    background: var(--surface-container-lowest);
+    box-shadow: inset 0 0 0 1px var(--outline-variant);
+    transition: --hold .3s var(--ease), box-shadow .2s var(--ease), transform .15s var(--ease);
+}
+
+.hold-btn.hold-armed::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--error-container);
+    transform: scaleX(var(--hold));
+    transform-origin: left;
+}
+
+.hold-btn .hold-label {
+    position: relative;
+}
+
+.hold-btn .hold-label::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    color: var(--error);
+    white-space: nowrap;
+    clip-path: inset(0 calc((1 - var(--hold)) * 100%) 0 0);
+}
+
+.hold-btn.hold-armed .icon {
+    position: relative;
+    color: color-mix(in srgb, var(--on-surface-variant), var(--error) calc(var(--hold) * 100%));
+}
+
+.hold-btn.hold-armed:hover {
+    transform: none;
+    box-shadow: inset 0 0 0 1px var(--outline-variant);
+}
+
+.hold-btn.hold-armed:active {
+    transform: scale(.98);
+}
+
+.hold-btn.hold-done {
+    background: var(--error);
+    color: var(--on-error);
+    box-shadow: none;
+    transform: scale(.97);
+}
+
+.hold-btn.hold-done::before {
+    background: transparent;
+}
+
+.hold-btn.hold-done .hold-label,
+.hold-btn.hold-done .hold-label::after,
+.hold-btn.hold-done .icon {
+    color: var(--on-error);
+}
+
+/* --- Рука-курсор: заменяет системный курсор в пределах сайта --- */
+.custom-cursor,
+.custom-cursor *,
+.custom-cursor *::before,
+.custom-cursor *::after {
+    cursor: none;
+}
+
+.cursor-hand {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    width: 32px;
+    height: auto;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    will-change: transform;
+    transition: opacity .25s var(--ease);
+}
+
+.cursor-hand.is-on {
+    opacity: 1;
+}
+
+/* --- Раскрытие карточек (как «кошелёк» из референса) --- */
+@keyframes card-expand {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(.96);
+    }
+}
+
+.expenses-form,
+.card.narrow,
+.dialog,
+.empty {
+    animation: card-expand .5s cubic-bezier(.32, .72, 0, 1) both;
+}
+
+.expenses-form .form > * {
+    animation: card-expand .45s cubic-bezier(.32, .72, 0, 1) both;
+}
+
+.expenses-form .form > *:nth-child(2) {
+    animation-delay: .06s;
+}
+
+.expenses-form .form > *:nth-child(3) {
+    animation-delay: .12s;
+}
+
 /* Адаптивность */
 @media (max-width: 900px) {
     .hero,
@@ -584,7 +900,6 @@ a {
     .nav-label {
         display: none;
     }
-
     .nav-link {
         width: 48px;
         padding: 0;
@@ -631,5 +946,16 @@ a {
     .cell-actions {
         grid-area: actions;
         width: auto;
+    }
+}
+
+/* Уважение к prefers-reduced-motion: вся декоративная анимация выключается */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
     }
 }

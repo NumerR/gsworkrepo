@@ -19,7 +19,10 @@
 
     <form method="POST" action="/expenses/{{.Expense.ID}}/delete" class="actions">
         <a href="/expenses" class="btn btn-text">Отмена</a>
-        <button type="submit" class="btn btn-danger">Удалить</button>
+        <button type="submit" class="btn btn-danger hold-btn" data-hold-form>
+            <span class="icon" aria-hidden="true">delete</span>
+            <span class="btn-label hold-label">Удалить</span>
+        </button>
     </form>
 
 </section>
