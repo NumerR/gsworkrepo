@@ -1,0 +1,27 @@
+{{define "content"}}
+
+<section class="dialog" role="alertdialog" aria-labelledby="dialog-title" aria-describedby="dialog-text">
+
+    <span class="icon dialog-icon" aria-hidden="true">delete</span>
+
+    <h1 id="dialog-title" class="dialog-title">Удалить трату?</h1>
+
+    <p id="dialog-text" class="dialog-text">Запись будет удалена из базы без возможности восстановления.</p>
+
+    <dl class="summary">
+        <dt>Описание</dt>
+        <dd>{{.Expense.Description}}</dd>
+        <dt>Сумма</dt>
+        <dd>{{.Expense.AmountText}}</dd>
+        <dt>Дата</dt>
+        <dd>{{.Expense.DateText}}</dd>
+    </dl>
+
+    <form method="POST" action="/expenses/{{.Expense.ID}}/delete" class="actions">
+        <a href="/expenses" class="btn btn-text">Отмена</a>
+        <button type="submit" class="btn btn-danger">Удалить</button>
+    </form>
+
+</section>
+
+{{end}}

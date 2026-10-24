@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"html/template"
-	"log"
 	"net/http"
 )
 
@@ -14,14 +13,9 @@ func Home(templates *template.Template) http.HandlerFunc {
 			return
 		}
 
-		err := templates.ExecuteTemplate(w, "base", map[string]any{
-			"Title": "Test",
+		render(w, templates, map[string]any{
+			"Title": "Главная",
+			"Form":  newExpenseForm(),
 		})
-
-		if err != nil {
-			log.Println("Template error:", err)
-			http.Error(w, "Template error", http.StatusInternalServerError)
-			return
-		}
 	}
 }

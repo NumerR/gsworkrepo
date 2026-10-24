@@ -1,40 +1,52 @@
 {{define "content"}}
-    <div>Список трат</div>
 
-    <table>
-        <thead>
-            <tr>
-                <th></th>
-                <th></th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            {{range .Expenses}}
-            <tr>
-                <td>{{.Description}}</td>
-                <td>{{.Amount}}</td>
-                <td>{{.Date}}</td>
-            </tr>
-            {{end}}
-        </tbody>
-    </table>
+<h1 class="page-title">Траты</h1>
 
-    <div>=====================================</div>
+<div class="expenses-layout">
 
-    <form method="POST" action="/expenses">
-        <label>Описание:
-            <input type="text" name="Description">
-        </label>
-        <br>
-        <label>Сумма:
-            <input type="number" name="Amount">
-        </label>
-        <br>
-        <label>Дата:
-            <input type="date" name="Date">
-        </label>
-        <br>
-        <button type="submit">Добавить</button>
-    </form>
+    <section class="card card-flush expenses-list">
+        {{if .Expenses}}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Дата</th>
+                    <th>Описание</th>
+                    <th class="num">Сумма</th>
+                    <th><span class="visually-hidden">Действия</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Expenses}}
+                <tr>
+                    <td class="cell-date">{{.DateText}}</td>
+                    <td class="cell-description">{{.Description}}</td>
+                    <td class="num cell-amount">{{.AmountText}}</td>
+                    <td class="cell-actions">
+                        <a href="/expenses/{{.ID}}/edit" class="icon-btn" title="Редактировать" aria-label="Редактировать">
+                            <span class="icon" aria-hidden="true">edit</span>
+                        </a>
+                        <a href="/expenses/{{.ID}}/delete" class="icon-btn icon-btn-danger" title="Удалить" aria-label="Удалить">
+                            <span class="icon" aria-hidden="true">delete</span>
+                        </a>
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+        {{else}}
+        <div class="empty">
+            <span class="icon empty-icon" aria-hidden="true">receipt_long</span>
+            <p class="empty-title">Пока нет ни одной траты</p>
+            <p class="empty-text">Добавьте первую через форму</p>
+        </div>
+        {{end}}
+    </section>
+
+    <aside class="card expenses-form">
+        <h2 class="card-title">Новая трата</h2>
+        {{template "expense-form" .Form}}
+    </aside>
+
+</div>
+
 {{end}}

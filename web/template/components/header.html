@@ -1,16 +1,21 @@
 {{define "header"}}
 
-<header class="header">
+<header class="top-app-bar">
 
-    <a href="/" class="logo">
-        bimbimbambam
+    <a href="/" class="brand">
+        <span class="icon brand-icon" aria-hidden="true">account_balance_wallet</span>
+        Учёт трат
     </a>
 
-    <nav>
-        <a href="/login">Войти</a>
+    <nav class="nav">
+        <a href="/" class="nav-link">
+            <span class="icon" aria-hidden="true">home</span>
+            <span class="nav-label">Главная</span>
+        </a>
 
-        <a href="/register" class="nav-button">
-            Регистрация
+        <a href="/expenses" class="nav-link">
+            <span class="icon" aria-hidden="true">receipt_long</span>
+            <span class="nav-label">Траты</span>
         </a>
     </nav>
 

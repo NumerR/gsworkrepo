@@ -1,31 +1,26 @@
-    {{define "content"}}
+{{define "content"}}
 
-    <section class="hero">
+<section class="hero">
 
-        <div class="hero-content">
-            <h2>
-                Учет трат
-            </h2>
+    <div class="hero-content">
+        <h1 class="display">Учёт личных трат</h1>
 
-            <form method="POST" action="/expenses">
-                <label>На что?:
-                    <input type="text" name="Description" value="{{.Description}}">
-                </label>
-                <br>
-                <label>Сколько?:
-                    <input type="number" name="Amount" value="{{.Amount}}">
-                </label>
-                <br>
-                <label>Когда?:
-                    <input type="date" name="Date" value="{{.Date}}">
-                </label>
-                <br>
-                <button type="submit">Добавить в учет</button>
-            </form>
+        <p class="lead">
+            Записывайте расходы за пару секунд — всё сохраняется в базе
+            и никуда не пропадёт после перезапуска.
+        </p>
 
+        <a href="/expenses" class="btn btn-tonal">
+            Все траты
+            <span class="icon icon-end" aria-hidden="true">arrow_forward</span>
+        </a>
+    </div>
 
-        </div>
+    <div class="card">
+        <h2 class="card-title">Новая трата</h2>
+        {{template "expense-form" .Form}}
+    </div>
 
-    </section>
+</section>
 
-    {{end}}
+{{end}}
