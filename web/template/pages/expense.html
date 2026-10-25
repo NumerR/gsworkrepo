@@ -2,6 +2,40 @@
 
 <h1 class="page-title">Траты</h1>
 
+<form method="GET" action="/expenses" class="card filters">
+
+    <div class="field">
+        <select id="filter-category" name="category">
+            <option value="">Все категории</option>
+            {{range .Categories}}
+            <option value="{{.ID}}" {{if eq $.Filter.CategoryID .ID}}selected{{end}}>{{.Name}}</option>
+            {{end}}
+        </select>
+        <label for="filter-category">Категория</label>
+    </div>
+
+    <div class="field">
+        <input id="filter-from" type="date" name="from" value="{{.Filter.From}}">
+        <label for="filter-from">Дата от</label>
+    </div>
+
+    <div class="field">
+        <input id="filter-to" type="date" name="to" value="{{.Filter.To}}">
+        <label for="filter-to">Дата до</label>
+    </div>
+
+    <div class="filter-actions">
+        <button type="submit" class="btn btn-tonal">
+            <span class="icon" aria-hidden="true">filter_alt</span>
+            <span class="btn-label">Применить</span>
+        </button>
+        {{if .Filter.Active}}
+        <a href="/expenses" class="btn btn-text">Сбросить</a>
+        {{end}}
+    </div>
+
+</form>
+
 <div class="expenses-layout">
 
     <section class="card card-flush expenses-list">
@@ -11,6 +45,7 @@
                 <tr>
                     <th>Дата</th>
                     <th>Описание</th>
+                    <th>Категория</th>
                     <th class="num">Сумма</th>
                     <th><span class="visually-hidden">Действия</span></th>
                 </tr>
@@ -20,12 +55,19 @@
                 <tr data-id="{{.ID}}">
                     <td class="cell-date">{{.DateText}}</td>
                     <td class="cell-description">{{.Description}}</td>
+                    <td>
+                        {{if .CategoryID}}
+                        <a class="chip" href="/expenses?category={{.CategoryID}}" title="Показать только эту категорию">{{.CategoryText}}</a>
+                        {{else}}
+                        <span class="chip chip-muted">{{.CategoryText}}</span>
+                        {{end}}
+                    </td>
                     <td class="num cell-amount">{{.AmountText}}</td>
                     <td class="cell-actions">
-                        <a href="/expenses/{{.ID}}/edit" class="icon-btn" title="Редактировать" aria-label="Редактировать">
+                        <a href="/expenses/{{.ID}}/edit{{$.Filter.Query}}" class="icon-btn" title="Редактировать" aria-label="Редактировать">
                             <span class="icon" aria-hidden="true">edit</span>
                         </a>
-                        <a href="/expenses/{{.ID}}/delete" class="icon-btn icon-btn-danger" title="Удалить" aria-label="Удалить">
+                        <a href="/expenses/{{.ID}}/delete{{$.Filter.Query}}" class="icon-btn icon-btn-danger" title="Удалить" aria-label="Удалить">
                             <span class="icon" aria-hidden="true">delete</span>
                         </a>
                     </td>
@@ -35,9 +77,17 @@
         </table>
         {{else}}
         <div class="empty">
-            <span class="icon empty-icon" aria-hidden="true">receipt_long</span>
-            <p class="empty-title">Пока нет ни одной траты</p>
-            <p class="empty-text">Добавьте первую через форму</p>
+            <span class="icon empty-icon" aria-hidden="true">{{if .Filter.Active}}search_off{{else}}receipt_long{{end}}</span>
+            <p class="empty-title">
+                {{if .Filter.Active}}Под этот фильтр ничего не подошло{{else}}Пока нет ни одной траты{{end}}
+            </p>
+            <p class="empty-text">
+                {{if .Filter.Active}}
+                <a href="/expenses">Сбросить фильтр</a> или добавьте первую трату через форму
+                {{else}}
+                Добавьте первую через форму
+                {{end}}
+            </p>
         </div>
         {{end}}
     </section>

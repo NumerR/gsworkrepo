@@ -12,6 +12,16 @@ type Expense struct {
 	Amount      int64 // в копейках
 	Description string
 	Date        string // YYYY-MM-DD
+	CategoryID  int64  // 0 — категория не выбрана
+	CategoryName string // приходит из JOIN с categories
+}
+
+// CategoryText — название категории для отображения.
+func (e Expense) CategoryText() string {
+	if e.CategoryName == "" {
+		return "Без категории"
+	}
+	return e.CategoryName
 }
 
 // AmountInput — сумма для поля формы: "1234.50".

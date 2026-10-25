@@ -5,34 +5,63 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"gdwork/internal/models"
 	"gdwork/internal/repository"
 )
 
-// ExpenseList показывает страницу со списком трат
-func ExpenseList(templates *template.Template, repo *repository.ExpenseRepository) http.HandlerFunc {
+// ExpenseList показывает список трат, отфильтрованный по query-параметрам
+func ExpenseList(
+	templates *template.Template,
+	repo *repository.ExpenseRepository,
+	categories *repository.CategoryRepository,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		expenses, err := repo.GetAll()
+		categoryList, err := categories.List()
 		if err != nil {
 			serverError(w, err)
 			return
 		}
 
+		filter := parseExpenseFilter(r)
+
+		expenses, err := repo.List(filter.Filter())
+		if err != nil {
+			serverError(w, err)
+			return
+		}
+
+		form := newExpenseForm(categoryList)
+		// форма добавления стоит на этом же списке, поэтому сохраняем фильтр в action
+		form.Action = "/expenses" + filter.Query()
+
 		render(w, templates, map[string]any{
-			"Title":    "Траты",
-			"Expenses": expenses,
-			"Form":     newExpenseForm(),
+			"Title":      "Траты",
+			"Expenses":   expenses,
+			"Categories": categoryList,
+			"Filter":     filter,
+			"Form":       form,
 		})
 	}
 }
 
 // AddExpense принимает данные из формы и сохраняет трату
-func AddExpense(repo *repository.ExpenseRepository) http.HandlerFunc {
+func AddExpense(repo *repository.ExpenseRepository, categories *repository.CategoryRepository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		expense, err := parseExpenseForm(r)
 		if err != nil {
+			http.Error(w, "Неверные данные формы", http.StatusBadRequest)
+			return
+		}
+
+		known, err := checkCategory(categories, expense.CategoryID)
+		if err != nil {
+			serverError(w, err)
+			return
+		}
+		if !known {
 			http.Error(w, "Неверные данные формы", http.StatusBadRequest)
 			return
 		}
@@ -42,32 +71,50 @@ func AddExpense(repo *repository.ExpenseRepository) http.HandlerFunc {
 			return
 		}
 
-		http.Redirect(w, r, "/expenses?flash=add&id="+strconv.FormatInt(expense.ID, 10), http.StatusSeeOther)
+		redirectToList(w, r, url.Values{
+			"flash": {"add"},
+			"id":    {strconv.FormatInt(expense.ID, 10)},
+		})
 	}
 }
 
 // EditExpense показывает форму редактирования траты
-func EditExpense(templates *template.Template, repo *repository.ExpenseRepository) http.HandlerFunc {
+func EditExpense(
+	templates *template.Template,
+	repo *repository.ExpenseRepository,
+	categories *repository.CategoryRepository,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		categoryList, err := categories.List()
+		if err != nil {
+			serverError(w, err)
+			return
+		}
+
 		expense, ok := findExpense(w, r, repo)
 		if !ok {
 			return
 		}
 
+		// фильтры прилетели в ссылке со списка — держим их в action и «Отмене»,
+		// чтобы после сохранения вернуться в тот же срез
+		filter := parseExpenseFilter(r)
+
 		render(w, templates, map[string]any{
 			"Title": "Редактирование траты",
 			"Form": expenseForm{
-				Action:  "/expenses/" + strconv.FormatInt(expense.ID, 10) + "/edit",
-				Submit:  "Сохранить",
-				Cancel:  "/expenses",
-				Expense: expense,
+				Action:     "/expenses/" + strconv.FormatInt(expense.ID, 10) + "/edit" + filter.Query(),
+				Submit:     "Сохранить",
+				Cancel:     "/expenses" + filter.Query(),
+				Expense:    expense,
+				Categories: categoryList,
 			},
 		})
 	}
 }
 
 // UpdateExpense сохраняет изменения траты
-func UpdateExpense(repo *repository.ExpenseRepository) http.HandlerFunc {
+func UpdateExpense(repo *repository.ExpenseRepository, categories *repository.CategoryRepository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := parseID(r)
 		if err != nil {
@@ -77,6 +124,16 @@ func UpdateExpense(repo *repository.ExpenseRepository) http.HandlerFunc {
 
 		expense, err := parseExpenseForm(r)
 		if err != nil {
+			http.Error(w, "Неверные данные формы", http.StatusBadRequest)
+			return
+		}
+
+		known, err := checkCategory(categories, expense.CategoryID)
+		if err != nil {
+			serverError(w, err)
+			return
+		}
+		if !known {
 			http.Error(w, "Неверные данные формы", http.StatusBadRequest)
 			return
 		}
@@ -92,7 +149,10 @@ func UpdateExpense(repo *repository.ExpenseRepository) http.HandlerFunc {
 			return
 		}
 
-		http.Redirect(w, r, "/expenses?flash=edit&id="+strconv.FormatInt(id, 10), http.StatusSeeOther)
+		redirectToList(w, r, url.Values{
+			"flash": {"edit"},
+			"id":    {strconv.FormatInt(id, 10)},
+		})
 	}
 }
 
@@ -107,6 +167,7 @@ func ConfirmDeleteExpense(templates *template.Template, repo *repository.Expense
 		render(w, templates, map[string]any{
 			"Title":   "Удаление траты",
 			"Expense": expense,
+			"Filter":  parseExpenseFilter(r),
 		})
 	}
 }
@@ -130,8 +191,33 @@ func DeleteExpense(repo *repository.ExpenseRepository) http.HandlerFunc {
 			return
 		}
 
-		http.Redirect(w, r, "/expenses", http.StatusSeeOther)
+		redirectToList(w, r, nil)
 	}
+}
+
+// redirectToList возвращает в список трат, сохраняя фильтры из текущего запроса
+// и добавляя служебные параметры вроде flash и id
+func redirectToList(w http.ResponseWriter, r *http.Request, extra url.Values) {
+	query := parseExpenseFilter(r).Values()
+	for key, values := range extra {
+		query[key] = values
+	}
+
+	location := "/expenses"
+	if encoded := query.Encode(); encoded != "" {
+		location += "?" + encoded
+	}
+
+	http.Redirect(w, r, location, http.StatusSeeOther)
+}
+
+// checkCategory говорит, можно ли сохранить трату с такой категорией:
+// 0 — «без категории», которого нет в справочнике — ошибка данных формы.
+func checkCategory(categories *repository.CategoryRepository, id int64) (bool, error) {
+	if id == 0 {
+		return true, nil
+	}
+	return categories.Exists(id)
 }
 
 // findExpense достаёт трату по {id} из пути; при ошибке сам пишет ответ и возвращает false

@@ -19,6 +19,16 @@
             <input id="date" type="date" name="Date" value="{{.Expense.Date}}" required>
             <label for="date">Дата</label>
         </div>
+
+        <div class="field">
+            <select id="category" name="Category">
+                <option value="">Без категории</option>
+                {{range .Categories}}
+                <option value="{{.ID}}" {{if eq $.Expense.CategoryID .ID}}selected{{end}}>{{.Name}}</option>
+                {{end}}
+            </select>
+            <label for="category">Категория</label>
+        </div>
     </div>
 
     <div class="actions">

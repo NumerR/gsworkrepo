@@ -15,10 +15,12 @@
         <dd>{{.Expense.AmountText}}</dd>
         <dt>Дата</dt>
         <dd>{{.Expense.DateText}}</dd>
+        <dt>Категория</dt>
+        <dd>{{.Expense.CategoryText}}</dd>
     </dl>
 
-    <form method="POST" action="/expenses/{{.Expense.ID}}/delete" class="actions">
-        <a href="/expenses" class="btn btn-text">Отмена</a>
+    <form method="POST" action="/expenses/{{.Expense.ID}}/delete{{.Filter.Query}}" class="actions">
+        <a href="/expenses{{.Filter.Query}}" class="btn btn-text">Отмена</a>
         <button type="submit" class="btn btn-danger hold-btn" data-hold-form>
             <span class="icon" aria-hidden="true">delete</span>
             <span class="btn-label hold-label">Удалить</span>

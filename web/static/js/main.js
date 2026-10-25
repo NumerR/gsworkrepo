@@ -358,7 +358,11 @@ document.querySelectorAll("form.form").forEach((form) => {
             row.scrollIntoView({ block: "center", behavior: "smooth" });
         }
     }
-    history.replaceState(null, "", location.pathname);
+    // Убираем только служебные параметры: фильтры списка должны остаться в ссылке
+    params.delete("flash");
+    params.delete("id");
+    const rest = params.toString();
+    history.replaceState(null, "", location.pathname + (rest ? "?" + rest : ""));
 })();
 
 // Кнопка удаления в списке: строка вылетает, соседние плавно сдвигаются (FLIP),

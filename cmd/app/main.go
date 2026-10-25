@@ -12,7 +12,9 @@ import (
 
 func main() {
 
-	db, err := database.Open("expenses.db?_pragma=busy_timeout(5000)")
+	// foreign_keys включает проверку внешних ключей: без неё SQLite принимает
+	// category_id, которого нет в справочнике
+	db, err := database.Open("expenses.db?_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -23,6 +25,7 @@ func main() {
 	}
 
 	expenseRepo := repository.NewExpenseRepository(db)
+	categoryRepo := repository.NewCategoryRepository(db)
 
 	homeTemplate := page("home")
 	registerTemplate := page("register")
@@ -34,17 +37,17 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Страницы
-	mux.HandleFunc("/", handlers.Home(homeTemplate))
+	mux.HandleFunc("/", handlers.Home(homeTemplate, categoryRepo))
 	mux.HandleFunc("/about", handlers.About)
 	mux.HandleFunc("/ping", handlers.Ping)
 	mux.HandleFunc("/login", handlers.Login(loginTemplate))
 	mux.HandleFunc("/register", handlers.Register(registerTemplate))
 
 	// Траты
-	mux.HandleFunc("GET /expenses", handlers.ExpenseList(expensesTemplate, expenseRepo))
-	mux.HandleFunc("POST /expenses", handlers.AddExpense(expenseRepo))
-	mux.HandleFunc("GET /expenses/{id}/edit", handlers.EditExpense(editTemplate, expenseRepo))
-	mux.HandleFunc("POST /expenses/{id}/edit", handlers.UpdateExpense(expenseRepo))
+	mux.HandleFunc("GET /expenses", handlers.ExpenseList(expensesTemplate, expenseRepo, categoryRepo))
+	mux.HandleFunc("POST /expenses", handlers.AddExpense(expenseRepo, categoryRepo))
+	mux.HandleFunc("GET /expenses/{id}/edit", handlers.EditExpense(editTemplate, expenseRepo, categoryRepo))
+	mux.HandleFunc("POST /expenses/{id}/edit", handlers.UpdateExpense(expenseRepo, categoryRepo))
 	mux.HandleFunc("GET /expenses/{id}/delete", handlers.ConfirmDeleteExpense(deleteTemplate, expenseRepo))
 	mux.HandleFunc("POST /expenses/{id}/delete", handlers.DeleteExpense(expenseRepo))
 

@@ -13,21 +13,23 @@ import (
 
 // expenseForm — данные для общего шаблона формы "expense-form".
 type expenseForm struct {
-	Action  string
-	Submit  string
-	Cancel  string
-	Expense models.Expense
+	Action     string
+	Submit     string
+	Cancel     string
+	Expense    models.Expense
+	Categories []models.Category
 }
 
-func newExpenseForm() expenseForm {
+func newExpenseForm(categories []models.Category) expenseForm {
 	return expenseForm{
-		Action:  "/expenses",
-		Submit:  "Добавить",
-		Expense: models.Expense{Date: time.Now().Format(time.DateOnly)},
+		Action:     "/expenses",
+		Submit:     "Добавить",
+		Expense:    models.Expense{Date: time.Now().Format(time.DateOnly)},
+		Categories: categories,
 	}
 }
 
-// parseExpenseForm читает поля Description, Amount, Date из формы.
+// parseExpenseForm читает поля Description, Amount, Date, Category из формы.
 func parseExpenseForm(r *http.Request) (models.Expense, error) {
 	if err := r.ParseForm(); err != nil {
 		return models.Expense{}, err
@@ -43,10 +45,17 @@ func parseExpenseForm(r *http.Request) (models.Expense, error) {
 		return models.Expense{}, err
 	}
 
+	// пусто — трата без категории; ноль приводит значение поля к CategoryID = 0
+	category, err := strconv.ParseInt(r.FormValue("Category"), 10, 64)
+	if err != nil && r.FormValue("Category") != "" {
+		return models.Expense{}, err
+	}
+
 	return models.Expense{
 		Amount:      amount,
 		Description: strings.TrimSpace(r.FormValue("Description")),
 		Date:        date,
+		CategoryID:  category,
 	}, nil
 }
 

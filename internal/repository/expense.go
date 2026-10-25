@@ -3,11 +3,20 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"strings"
 
 	"gdwork/internal/models"
 )
 
 var ErrNotFound = errors.New("expense not found")
+
+// ExpenseFilter — необязательные условия выборки списка трат.
+// Нулевые значения означают «фильтр не задан».
+type ExpenseFilter struct {
+	CategoryID int64
+	From       string // YYYY-MM-DD, включительно
+	To         string // YYYY-MM-DD, включительно
+}
 
 // ExpenseRepository содержит весь SQL для работы с тратами.
 // Значения передаются только через placeholder ?, а не склейкой строк.
@@ -19,10 +28,17 @@ func NewExpenseRepository(db *sql.DB) *ExpenseRepository {
 	return &ExpenseRepository{db: db}
 }
 
+// Название категории берётся тем же запросом через LEFT JOIN: на список — один
+// запрос, а не запрос на каждую строку (проблема N+1).
+const expenseSelect = `SELECT e.id, e.amount, e.description, e.date,
+        COALESCE(e.category_id, 0), COALESCE(c.name, '')
+    FROM expenses e
+    LEFT JOIN categories c ON c.id = e.category_id`
+
 func (r *ExpenseRepository) Create(e *models.Expense) error {
 	res, err := r.db.Exec(
-		`INSERT INTO expenses (amount, description, date) VALUES (?, ?, ?)`,
-		e.Amount, e.Description, e.Date,
+		`INSERT INTO expenses (amount, description, date, category_id) VALUES (?, ?, ?, ?)`,
+		e.Amount, e.Description, e.Date, categoryKey(e.CategoryID),
 	)
 	if err != nil {
 		return err
@@ -32,10 +48,33 @@ func (r *ExpenseRepository) Create(e *models.Expense) error {
 	return err
 }
 
-func (r *ExpenseRepository) GetAll() ([]models.Expense, error) {
-	rows, err := r.db.Query(
-		`SELECT id, amount, description, date FROM expenses ORDER BY date DESC, id DESC`,
-	)
+// List — траты, подходящие под фильтр; порядок — от свежих к старым.
+func (r *ExpenseRepository) List(f ExpenseFilter) ([]models.Expense, error) {
+	query := strings.Builder{}
+	query.WriteString(expenseSelect)
+
+	var conditions []string
+	var args []any
+
+	if f.CategoryID > 0 {
+		conditions = append(conditions, "e.category_id = ?")
+		args = append(args, f.CategoryID)
+	}
+	if f.From != "" {
+		conditions = append(conditions, "e.date >= ?")
+		args = append(args, f.From)
+	}
+	if f.To != "" {
+		conditions = append(conditions, "e.date <= ?")
+		args = append(args, f.To)
+	}
+
+	if len(conditions) > 0 {
+		query.WriteString(" WHERE " + strings.Join(conditions, " AND "))
+	}
+	query.WriteString(" ORDER BY e.date DESC, e.id DESC")
+
+	rows, err := r.db.Query(query.String(), args...)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +83,8 @@ func (r *ExpenseRepository) GetAll() ([]models.Expense, error) {
 	var expenses []models.Expense
 	for rows.Next() {
 		var e models.Expense
-		if err := rows.Scan(&e.ID, &e.Amount, &e.Description, &e.Date); err != nil {
+		if err := rows.Scan(&e.ID, &e.Amount, &e.Description, &e.Date,
+			&e.CategoryID, &e.CategoryName); err != nil {
 			return nil, err
 		}
 		expenses = append(expenses, e)
@@ -55,10 +95,10 @@ func (r *ExpenseRepository) GetAll() ([]models.Expense, error) {
 
 func (r *ExpenseRepository) GetByID(id int64) (models.Expense, error) {
 	var e models.Expense
-	err := r.db.QueryRow(
-		`SELECT id, amount, description, date FROM expenses WHERE id = ?`, id,
-	).Scan(&e.ID, &e.Amount, &e.Description, &e.Date)
 
+	err := r.db.QueryRow(expenseSelect+" WHERE e.id = ?", id).Scan(
+		&e.ID, &e.Amount, &e.Description, &e.Date, &e.CategoryID, &e.CategoryName,
+	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return e, ErrNotFound
 	}
@@ -67,8 +107,8 @@ func (r *ExpenseRepository) GetByID(id int64) (models.Expense, error) {
 
 func (r *ExpenseRepository) Update(e models.Expense) error {
 	res, err := r.db.Exec(
-		`UPDATE expenses SET amount = ?, description = ?, date = ? WHERE id = ?`,
-		e.Amount, e.Description, e.Date, e.ID,
+		`UPDATE expenses SET amount = ?, description = ?, date = ?, category_id = ? WHERE id = ?`,
+		e.Amount, e.Description, e.Date, categoryKey(e.CategoryID), e.ID,
 	)
 	if err != nil {
 		return err
@@ -93,4 +133,12 @@ func checkAffected(res sql.Result) error {
 		return ErrNotFound
 	}
 	return nil
+}
+
+// categoryKey хранит «без категории» как NULL, а не как 0 — иначе внешний ключ не сойдётся.
+func categoryKey(id int64) any {
+	if id == 0 {
+		return nil
+	}
+	return id
 }
