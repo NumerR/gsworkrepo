@@ -8,7 +8,8 @@ import (
 	"gdwork/internal/models"
 )
 
-var ErrNotFound = errors.New("expense not found")
+// ErrNotFound — запись отсутствует (или принадлежит другому пользователю).
+var ErrNotFound = errors.New("not found")
 
 // ExpenseFilter — необязательные условия выборки списка трат.
 // Нулевые значения означают «фильтр не задан».
@@ -30,15 +31,16 @@ func NewExpenseRepository(db *sql.DB) *ExpenseRepository {
 
 // Название категории берётся тем же запросом через LEFT JOIN: на список — один
 // запрос, а не запрос на каждую строку (проблема N+1).
-const expenseSelect = `SELECT e.id, e.amount, e.description, e.date,
+// user_id входит в каждое условие: чужая трата недоступна ни списком, ни по id.
+const expenseSelect = `SELECT e.id, e.user_id, e.amount, e.description, e.date,
         COALESCE(e.category_id, 0), COALESCE(c.name, '')
     FROM expenses e
     LEFT JOIN categories c ON c.id = e.category_id`
 
 func (r *ExpenseRepository) Create(e *models.Expense) error {
 	res, err := r.db.Exec(
-		`INSERT INTO expenses (amount, description, date, category_id) VALUES (?, ?, ?, ?)`,
-		e.Amount, e.Description, e.Date, categoryKey(e.CategoryID),
+		`INSERT INTO expenses (user_id, amount, description, date, category_id) VALUES (?, ?, ?, ?, ?)`,
+		e.UserID, e.Amount, e.Description, e.Date, categoryKey(e.CategoryID),
 	)
 	if err != nil {
 		return err
@@ -48,13 +50,16 @@ func (r *ExpenseRepository) Create(e *models.Expense) error {
 	return err
 }
 
-// List — траты, подходящие под фильтр; порядок — от свежих к старым.
-func (r *ExpenseRepository) List(f ExpenseFilter) ([]models.Expense, error) {
+// List — траты пользователя, подходящие под фильтр; порядок — от свежих к старым.
+func (r *ExpenseRepository) List(userID int64, f ExpenseFilter) ([]models.Expense, error) {
 	query := strings.Builder{}
 	query.WriteString(expenseSelect)
 
 	var conditions []string
 	var args []any
+
+	conditions = append(conditions, "e.user_id = ?")
+	args = append(args, userID)
 
 	if f.CategoryID > 0 {
 		conditions = append(conditions, "e.category_id = ?")
@@ -69,9 +74,9 @@ func (r *ExpenseRepository) List(f ExpenseFilter) ([]models.Expense, error) {
 		args = append(args, f.To)
 	}
 
-	if len(conditions) > 0 {
-		query.WriteString(" WHERE " + strings.Join(conditions, " AND "))
-	}
+	// Условие по владельцу обязательное: без него список стал бы общим, поэтому
+	// WHERE пишется всегда, а не «если фильтры заданы».
+	query.WriteString(" WHERE " + strings.Join(conditions, " AND "))
 	query.WriteString(" ORDER BY e.date DESC, e.id DESC")
 
 	rows, err := r.db.Query(query.String(), args...)
@@ -83,7 +88,7 @@ func (r *ExpenseRepository) List(f ExpenseFilter) ([]models.Expense, error) {
 	var expenses []models.Expense
 	for rows.Next() {
 		var e models.Expense
-		if err := rows.Scan(&e.ID, &e.Amount, &e.Description, &e.Date,
+		if err := rows.Scan(&e.ID, &e.UserID, &e.Amount, &e.Description, &e.Date,
 			&e.CategoryID, &e.CategoryName); err != nil {
 			return nil, err
 		}
@@ -93,11 +98,14 @@ func (r *ExpenseRepository) List(f ExpenseFilter) ([]models.Expense, error) {
 	return expenses, rows.Err()
 }
 
-func (r *ExpenseRepository) GetByID(id int64) (models.Expense, error) {
+// GetByID — трата этого пользователя. Условие по user_id означает, что чужая
+// трата выглядит как несуществующая (404), а не как запрещённая: так мы
+// не подтверждаем, что такой id в базе есть.
+func (r *ExpenseRepository) GetByID(id, userID int64) (models.Expense, error) {
 	var e models.Expense
 
-	err := r.db.QueryRow(expenseSelect+" WHERE e.id = ?", id).Scan(
-		&e.ID, &e.Amount, &e.Description, &e.Date, &e.CategoryID, &e.CategoryName,
+	err := r.db.QueryRow(expenseSelect+" WHERE e.id = ? AND e.user_id = ?", id, userID).Scan(
+		&e.ID, &e.UserID, &e.Amount, &e.Description, &e.Date, &e.CategoryID, &e.CategoryName,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return e, ErrNotFound
@@ -107,8 +115,9 @@ func (r *ExpenseRepository) GetByID(id int64) (models.Expense, error) {
 
 func (r *ExpenseRepository) Update(e models.Expense) error {
 	res, err := r.db.Exec(
-		`UPDATE expenses SET amount = ?, description = ?, date = ?, category_id = ? WHERE id = ?`,
-		e.Amount, e.Description, e.Date, categoryKey(e.CategoryID), e.ID,
+		`UPDATE expenses SET amount = ?, description = ?, date = ?, category_id = ?
+			WHERE id = ? AND user_id = ?`,
+		e.Amount, e.Description, e.Date, categoryKey(e.CategoryID), e.ID, e.UserID,
 	)
 	if err != nil {
 		return err
@@ -116,8 +125,8 @@ func (r *ExpenseRepository) Update(e models.Expense) error {
 	return checkAffected(res)
 }
 
-func (r *ExpenseRepository) Delete(id int64) error {
-	res, err := r.db.Exec(`DELETE FROM expenses WHERE id = ?`, id)
+func (r *ExpenseRepository) Delete(id, userID int64) error {
+	res, err := r.db.Exec(`DELETE FROM expenses WHERE id = ? AND user_id = ?`, id, userID)
 	if err != nil {
 		return err
 	}

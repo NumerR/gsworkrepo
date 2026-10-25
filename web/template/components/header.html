@@ -13,10 +13,32 @@
             <span class="nav-label">Главная</span>
         </a>
 
+        {{if .User.ID}}
         <a href="/expenses" class="nav-link">
             <span class="icon" aria-hidden="true">receipt_long</span>
             <span class="nav-label">Траты</span>
         </a>
+
+        <a href="/account" class="nav-user" title="Аккаунт">{{.User.Email}}</a>
+
+        <form method="POST" action="/logout">
+            <input type="hidden" name="csrf" value="{{.CSRF}}">
+            <button type="submit" class="nav-link">
+                <span class="icon" aria-hidden="true">logout</span>
+                <span class="nav-label">Выйти</span>
+            </button>
+        </form>
+        {{else}}
+        <a href="/login" class="nav-link">
+            <span class="icon" aria-hidden="true">login</span>
+            <span class="nav-label">Вход</span>
+        </a>
+
+        <a href="/register" class="nav-link">
+            <span class="icon" aria-hidden="true">person_add</span>
+            <span class="nav-label">Регистрация</span>
+        </a>
+        {{end}}
 
         <button id="theme-toggle" type="button" class="icon-btn" aria-label="Переключить тему">
             <span class="icon" aria-hidden="true">dark_mode</span>

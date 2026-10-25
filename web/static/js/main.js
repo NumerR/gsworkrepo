@@ -225,8 +225,10 @@ function dissolveLabel(label) {
     return spans.length * 22 + 260;
 }
 
-// Кнопка «Добавить/Сохранить»: текст растворяется, взрыв конфетти, галочка «Готово»
-document.querySelectorAll("form.form").forEach((form) => {
+// Кнопка «Добавить/Сохранить»: текст растворяется, взрыв конфетти, галочка «Готово».
+// Формы входа и регистрации (auth-form) исключены: до ответа сервера неизвестно,
+// увенчалась ли попытка успехом, а «Готово» с конфетти при неверном пароле — обман.
+document.querySelectorAll("form.form:not(.auth-form)").forEach((form) => {
     form.addEventListener("submit", (e) => {
         if (form.dataset.busy) {
             e.preventDefault(); // пока идёт анимация, повторяющая отправка блокируется

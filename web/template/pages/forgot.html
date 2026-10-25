@@ -1,0 +1,40 @@
+{{define "content"}}
+
+<section class="card auth">
+    <h1 class="card-title">Восстановление пароля</h1>
+
+    {{if .Info}}
+    <p class="form-ok" role="status">
+        <span class="icon" aria-hidden="true">check</span>
+        {{.Info}}
+    </p>
+    {{end}}
+
+    {{if .Error}}
+    <p class="form-error" role="alert">
+        <span class="icon" aria-hidden="true">error</span>
+        {{.Error}}
+    </p>
+    {{end}}
+
+    <form method="POST" action="/forgot" class="form auth-form">
+        <input type="hidden" name="csrf" value="{{.CSRF}}">
+
+        <div class="field">
+            <input id="email" type="email" name="email" placeholder=" "
+                   autocomplete="email" maxlength="320" required>
+            <label for="email">Email аккаунта</label>
+        </div>
+
+        <div class="actions">
+            <button type="submit" class="btn btn-filled">
+                <span class="icon" aria-hidden="true">arrow_forward</span>
+                <span class="btn-label">Отправить ссылку</span>
+            </button>
+        </div>
+    </form>
+
+    <p class="auth-note">Ссылка живёт 15 минут и действует один раз. Вспомнили пароль — <a href="/login">войдите</a>.</p>
+</section>
+
+{{end}}

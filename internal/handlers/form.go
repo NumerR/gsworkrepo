@@ -18,14 +18,16 @@ type expenseForm struct {
 	Cancel     string
 	Expense    models.Expense
 	Categories []models.Category
+	CSRF       string
 }
 
-func newExpenseForm(categories []models.Category) expenseForm {
+func newExpenseForm(categories []models.Category, csrf string) expenseForm {
 	return expenseForm{
 		Action:     "/expenses",
 		Submit:     "Добавить",
 		Expense:    models.Expense{Date: time.Now().Format(time.DateOnly)},
 		Categories: categories,
+		CSRF:       csrf,
 	}
 }
 

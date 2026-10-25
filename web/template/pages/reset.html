@@ -1,0 +1,41 @@
+{{define "content"}}
+
+<section class="card auth">
+    <h1 class="card-title">Новый пароль</h1>
+
+    {{if .Error}}
+    <p class="form-error" role="alert">
+        <span class="icon" aria-hidden="true">error</span>
+        {{.Error}}
+    </p>
+    {{end}}
+
+    <form method="POST" action="/reset" class="form auth-form">
+        <input type="hidden" name="csrf" value="{{.CSRF}}">
+        <input type="hidden" name="token" value="{{.Token}}">
+
+        <div class="field">
+            <input id="password" type="password" name="password" placeholder=" "
+                   autocomplete="new-password" minlength="8" maxlength="256" required>
+            <label for="password">Новый пароль, минимум 8 символов</label>
+        </div>
+
+        <div class="field">
+            <input id="password-repeat" type="password" name="password_repeat" placeholder=" "
+                   autocomplete="new-password" minlength="8" maxlength="256" required>
+            <label for="password-repeat">Новый пароль ещё раз</label>
+        </div>
+
+        <div class="actions">
+            <button type="submit" class="btn btn-filled">
+                <span class="icon" aria-hidden="true">check</span>
+                <span class="btn-label">Сохранить</span>
+            </button>
+        </div>
+    </form>
+
+    <p class="auth-note">Ссылка ведёт в форму без автологина: вход выполняется отдельно, чтобы сброс
+        не превратился в способ удержания чужого аккаунта.</p>
+</section>
+
+{{end}}

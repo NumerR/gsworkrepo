@@ -8,11 +8,12 @@ import (
 )
 
 type Expense struct {
-	ID          int64
-	Amount      int64 // в копейках
-	Description string
-	Date        string // YYYY-MM-DD
-	CategoryID  int64  // 0 — категория не выбрана
+	ID           int64
+	UserID       int64 // владелец траты: список всегда отфильтрован по нему
+	Amount       int64 // в копейках
+	Description  string
+	Date         string // YYYY-MM-DD
+	CategoryID   int64  // 0 — категория не выбрана
 	CategoryName string // приходит из JOIN с categories
 }
 

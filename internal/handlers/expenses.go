@@ -12,13 +12,15 @@ import (
 	"gdwork/internal/repository"
 )
 
-// ExpenseList показывает список трат, отфильтрованный по query-параметрам
+// ExpenseList показывает траты текущего пользователя, отфильтрованные по query-параметрам
 func ExpenseList(
 	templates *template.Template,
 	repo *repository.ExpenseRepository,
 	categories *repository.CategoryRepository,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		user := currentUser(r)
+
 		categoryList, err := categories.List()
 		if err != nil {
 			serverError(w, err)
@@ -27,17 +29,17 @@ func ExpenseList(
 
 		filter := parseExpenseFilter(r)
 
-		expenses, err := repo.List(filter.Filter())
+		expenses, err := repo.List(user.ID, filter.Filter())
 		if err != nil {
 			serverError(w, err)
 			return
 		}
 
-		form := newExpenseForm(categoryList)
+		form := newExpenseForm(categoryList, csrfToken(r))
 		// форма добавления стоит на этом же списке, поэтому сохраняем фильтр в action
 		form.Action = "/expenses" + filter.Query()
 
-		render(w, templates, map[string]any{
+		render(w, r, templates, map[string]any{
 			"Title":      "Траты",
 			"Expenses":   expenses,
 			"Categories": categoryList,
@@ -47,7 +49,7 @@ func ExpenseList(
 	}
 }
 
-// AddExpense принимает данные из формы и сохраняет трату
+// AddExpense принимает данные из формы и сохраняет трату текущего пользователя
 func AddExpense(repo *repository.ExpenseRepository, categories *repository.CategoryRepository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		expense, err := parseExpenseForm(r)
@@ -55,6 +57,7 @@ func AddExpense(repo *repository.ExpenseRepository, categories *repository.Categ
 			http.Error(w, "Неверные данные формы", http.StatusBadRequest)
 			return
 		}
+		expense.UserID = currentUser(r).ID
 
 		known, err := checkCategory(categories, expense.CategoryID)
 		if err != nil {
@@ -100,7 +103,7 @@ func EditExpense(
 		// чтобы после сохранения вернуться в тот же срез
 		filter := parseExpenseFilter(r)
 
-		render(w, templates, map[string]any{
+		render(w, r, templates, map[string]any{
 			"Title": "Редактирование траты",
 			"Form": expenseForm{
 				Action:     "/expenses/" + strconv.FormatInt(expense.ID, 10) + "/edit" + filter.Query(),
@@ -108,6 +111,7 @@ func EditExpense(
 				Cancel:     "/expenses" + filter.Query(),
 				Expense:    expense,
 				Categories: categoryList,
+				CSRF:       csrfToken(r),
 			},
 		})
 	}
@@ -137,7 +141,11 @@ func UpdateExpense(repo *repository.ExpenseRepository, categories *repository.Ca
 			http.Error(w, "Неверные данные формы", http.StatusBadRequest)
 			return
 		}
+
 		expense.ID = id
+		// Обновление идёт по WHERE id = ? AND user_id = ?, поэтому чужая трата
+		// не изменится: запрос затронет ноль строк, и это выглядит как 404.
+		expense.UserID = currentUser(r).ID
 
 		err = repo.Update(expense)
 		if errors.Is(err, repository.ErrNotFound) {
@@ -164,7 +172,7 @@ func ConfirmDeleteExpense(templates *template.Template, repo *repository.Expense
 			return
 		}
 
-		render(w, templates, map[string]any{
+		render(w, r, templates, map[string]any{
 			"Title":   "Удаление траты",
 			"Expense": expense,
 			"Filter":  parseExpenseFilter(r),
@@ -181,7 +189,7 @@ func DeleteExpense(repo *repository.ExpenseRepository) http.HandlerFunc {
 			return
 		}
 
-		err = repo.Delete(id)
+		err = repo.Delete(id, currentUser(r).ID)
 		if errors.Is(err, repository.ErrNotFound) {
 			http.NotFound(w, r)
 			return
@@ -228,7 +236,7 @@ func findExpense(w http.ResponseWriter, r *http.Request, repo *repository.Expens
 		return models.Expense{}, false
 	}
 
-	expense, err := repo.GetByID(id)
+	expense, err := repo.GetByID(id, currentUser(r).ID)
 	if errors.Is(err, repository.ErrNotFound) {
 		http.NotFound(w, r)
 		return expense, false
@@ -241,7 +249,17 @@ func findExpense(w http.ResponseWriter, r *http.Request, repo *repository.Expens
 	return expense, true
 }
 
-func render(w http.ResponseWriter, templates *template.Template, data map[string]any) {
+// render дописывает в данные авторизованного пользователя и CSRF-токен: оба
+// нужны на каждой странице, а не только там, где открыта своя форма.
+// Приватная страница не должна оседать в кэше браузера или прокси (V4.1.1, V6.1.2).
+func render(w http.ResponseWriter, r *http.Request, templates *template.Template, data map[string]any) {
+	user := currentUser(r)
+	data["User"] = user
+	data["CSRF"] = csrfToken(r)
+	if user.ID != 0 {
+		noStore(w)
+	}
+
 	if err := templates.ExecuteTemplate(w, "base", data); err != nil {
 		log.Println("Template error:", err)
 		http.Error(w, "Template error", http.StatusInternalServerError)

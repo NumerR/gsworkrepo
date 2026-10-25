@@ -15,15 +15,18 @@ func Home(templates *template.Template, categories *repository.CategoryRepositor
 			return
 		}
 
-		categoryList, err := categories.List()
-		if err != nil {
-			serverError(w, err)
-			return
+		// Форма траты гостю ни к чему: сохранение доступно только владельцу списка
+		data := map[string]any{"Title": "Главная"}
+
+		if currentUser(r).ID != 0 {
+			categoryList, err := categories.List()
+			if err != nil {
+				serverError(w, err)
+				return
+			}
+			data["Form"] = newExpenseForm(categoryList, csrfToken(r))
 		}
 
-		render(w, templates, map[string]any{
-			"Title": "Главная",
-			"Form":  newExpenseForm(categoryList),
-		})
+		render(w, r, templates, data)
 	}
 }

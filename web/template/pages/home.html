@@ -16,10 +16,29 @@
         </a>
     </div>
 
+    {{if .User.ID}}
     <div class="card">
         <h2 class="card-title">Новая трата</h2>
         {{template "expense-form" .Form}}
     </div>
+    {{else}}
+    <div class="card">
+        <h2 class="card-title">Заведите свой список</h2>
+
+        <p class="lead">
+            С аккаунтом траты видит только их владелец: ни чужого списка,
+            ни общего на всех журнала расходов.
+        </p>
+
+        <div class="actions">
+            <a href="/register" class="btn btn-text">Регистрация</a>
+            <a href="/login" class="btn btn-filled">
+                <span class="icon" aria-hidden="true">login</span>
+                <span class="btn-label">Войти</span>
+            </a>
+        </div>
+    </div>
+    {{end}}
 
 </section>
 

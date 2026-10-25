@@ -20,6 +20,7 @@
     </dl>
 
     <form method="POST" action="/expenses/{{.Expense.ID}}/delete{{.Filter.Query}}" class="actions">
+        <input type="hidden" name="csrf" value="{{.CSRF}}">
         <a href="/expenses{{.Filter.Query}}" class="btn btn-text">Отмена</a>
         <button type="submit" class="btn btn-danger hold-btn" data-hold-form>
             <span class="icon" aria-hidden="true">delete</span>

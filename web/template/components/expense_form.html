@@ -1,6 +1,7 @@
 {{define "expense-form"}}
 
 <form method="POST" action="{{.Action}}" class="form">
+    <input type="hidden" name="csrf" value="{{.CSRF}}">
 
     <div class="field">
         <input id="description" type="text" name="Description" placeholder=" "

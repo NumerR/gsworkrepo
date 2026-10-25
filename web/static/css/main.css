@@ -215,6 +215,36 @@ a {
     font-variation-settings: "FILL" 1;
 }
 
+/* В шапке nav-link бывает и кнопкой (выход из системы) */
+button.nav-link {
+    border: none;
+    font-family: inherit;
+    background: transparent;
+    cursor: pointer;
+}
+
+.nav form {
+    display: contents;
+}
+
+/* Email владельца списка — ведёт в аккаунт, поэтому как nav-ссылка, но без иконки */
+.nav-user {
+    display: flex;
+    align-items: center;
+    max-width: 16ch;
+    padding: 0 .5rem;
+    overflow: hidden;
+    color: var(--on-surface-variant);
+    font-size: .8125rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nav-user:hover {
+    color: var(--on-surface);
+    text-decoration: none;
+}
+
 /* Layout */
 .container {
     width: 100%;
@@ -565,6 +595,73 @@ a {
     background: var(--surface-container-lowest);
     --field-bg: var(--surface-container-lowest);
     box-shadow: var(--elevation-1);
+}
+
+/* Вход, регистрация, аккаунт и сброс пароля */
+.auth {
+    display: grid;
+    gap: 1.25rem;
+    max-width: 420px;
+    margin: clamp(1rem, 8vh, 4.5rem) auto;
+    background: var(--surface-container-lowest);
+    --field-bg: var(--surface-container-lowest);
+    box-shadow: var(--elevation-1);
+}
+
+.auth .card-title {
+    margin-bottom: 0;
+    font-size: 1.75rem;
+    line-height: 2.25rem;
+}
+
+/* Ошибка формы — container-поверхность ошибки по Material 3 */
+.form-error {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .625rem .875rem;
+    border-radius: var(--shape-md);
+    background: var(--error-container);
+    color: var(--error);
+    font-size: .875rem;
+}
+
+.form-error .icon {
+    font-size: 1.25rem;
+}
+
+/* Успешное сообщение формы — та же pill, что и ошибка, но в тональной поверхности */
+.form-ok {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .625rem .875rem;
+    border-radius: var(--shape-md);
+    background: var(--secondary-container);
+    color: var(--on-secondary-container);
+    font-size: .875rem;
+}
+
+.form-ok .icon {
+    font-size: 1.25rem;
+}
+
+.auth-email {
+    color: var(--on-surface-variant);
+    font-size: .875rem;
+    overflow-wrap: anywhere;
+}
+
+.auth-note {
+    color: var(--on-surface-variant);
+    font-size: .8125rem;
+    line-height: 1.3rem;
+}
+
+.auth-alt {
+    color: var(--on-surface-variant);
+    font-size: .875rem;
+    text-align: center;
 }
 
 /* Expenses list */

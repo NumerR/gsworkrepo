@@ -1,9 +1,8 @@
 package models
 
+// User — аккаунт владельца трат. Хэш пароля в модели отсутствует специально:
+// он нужен только при проверке входа и не должен уезжать в шаблоны.
 type User struct {
-	ID    int
-	Name  string
+	ID    int64
 	Email string
-	Age   int
-	Admin bool
 }

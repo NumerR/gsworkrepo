@@ -1,0 +1,45 @@
+{{define "content"}}
+
+<section class="card auth">
+    <h1 class="card-title">Регистрация</h1>
+
+    {{if .Error}}
+    <p class="form-error" role="alert">
+        <span class="icon" aria-hidden="true">error</span>
+        {{.Error}}
+    </p>
+    {{end}}
+
+    <form method="POST" action="/register" class="form auth-form">
+        <input type="hidden" name="csrf" value="{{.CSRF}}">
+
+        <div class="field">
+            <input id="email" type="email" name="email" placeholder=" "
+                   value="{{.Email}}" autocomplete="email" maxlength="320" required>
+            <label for="email">Email</label>
+        </div>
+
+        <div class="field">
+            <input id="password" type="password" name="password" placeholder=" "
+                   autocomplete="new-password" minlength="8" maxlength="256" required>
+            <label for="password">Пароль, минимум 8 символов</label>
+        </div>
+
+        <div class="field">
+            <input id="password-repeat" type="password" name="password_repeat" placeholder=" "
+                   autocomplete="new-password" minlength="8" maxlength="256" required>
+            <label for="password-repeat">Пароль ещё раз</label>
+        </div>
+
+        <div class="actions">
+            <button type="submit" class="btn btn-filled">
+                <span class="icon" aria-hidden="true">person_add</span>
+                <span class="btn-label">Создать аккаунт</span>
+            </button>
+        </div>
+    </form>
+
+    <p class="auth-alt">Уже зарегистрированы? <a href="/login">Войдите</a></p>
+</section>
+
+{{end}}

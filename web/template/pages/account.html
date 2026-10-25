@@ -1,0 +1,55 @@
+{{define "content"}}
+
+<section class="card auth">
+    <h1 class="card-title">Аккаунт</h1>
+
+    <p class="auth-email">{{.User.Email}}</p>
+
+    {{if .Info}}
+    <p class="form-ok" role="status">
+        <span class="icon" aria-hidden="true">check</span>
+        Пароль изменён, все прежние сессии закрыты.
+    </p>
+    {{end}}
+
+    {{if .Error}}
+    <p class="form-error" role="alert">
+        <span class="icon" aria-hidden="true">error</span>
+        {{.Error}}
+    </p>
+    {{end}}
+
+    <form method="POST" action="/account/password" class="form auth-form">
+        <input type="hidden" name="csrf" value="{{.CSRF}}">
+
+        <div class="field">
+            <input id="password-current" type="password" name="password_current" placeholder=" "
+                   autocomplete="current-password" maxlength="256" required>
+            <label for="password-current">Текущий пароль</label>
+        </div>
+
+        <div class="field">
+            <input id="password" type="password" name="password" placeholder=" "
+                   autocomplete="new-password" minlength="8" maxlength="256" required>
+            <label for="password">Новый пароль, минимум 8 символов</label>
+        </div>
+
+        <div class="field">
+            <input id="password-repeat" type="password" name="password_repeat" placeholder=" "
+                   autocomplete="new-password" minlength="8" maxlength="256" required>
+            <label for="password-repeat">Новый пароль ещё раз</label>
+        </div>
+
+        <div class="actions">
+            <button type="submit" class="btn btn-filled">
+                <span class="icon" aria-hidden="true">check</span>
+                <span class="btn-label">Сменить пароль</span>
+            </button>
+        </div>
+    </form>
+
+    <p class="auth-note">После смены пароля все входы с других устройств закрываются, а этот продолжается
+        с новым идентификатором сессии.</p>
+</section>
+
+{{end}}
