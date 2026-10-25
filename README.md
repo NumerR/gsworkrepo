@@ -8,7 +8,7 @@
 - `html/template` — серверный рендеринг HTML
 - SQLite через `database/sql`, драйвер `modernc.org/sqlite` (чистый Go, без CGO)
 - Material Design 3 — свой CSS, шрифт Roboto и иконки Material Symbols (Google Fonts)
-- `golang.org/x/crypto/bcrypt` — хэширование паролей (стоимость 12), сессии на cookie + таблица `sessions`
+- `golang.org/x/crypto/bcrypt` — хэширование паролей, сессии на cookie + таблица `sessions`
 - `crypto/rand` + `crypto/hmac` — токены сессий и сброса, подпись CSRF-пары; отдельного секрета в конфиге нет
 - Защита построена по OWASP Top 10, ASVS V2–V4 и Cheat Sheet Series — раздел «Защита» ниже
 
